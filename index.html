@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Kosztów Studni Głębinowej</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f6f6f6;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 600px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #0f4e55;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .results {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        h4 {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h2>Kalkulator Kosztów Studni Głębinowej</h2>
+    <form id="wellCalculatorForm">
+        <label for="wellDepth">Głębokość studni głębinowej (m):</label>
+        <input type="number" id="wellDepth" placeholder="Wpisz przewidywaną głębokość studni" required>
+
+        <label for="additionalEquipment">Dodatkowe wyposażenie:</label>
+        <select id="additionalEquipment">
+            <option value="5500">Z pełnym wyposażeniem (ok. 5000-6000 zł)</option>
+            <option value="0">Bez dodatkowego wyposażenia (sam odwiert)</option>
+        </select>
+
+        <label for="pricePerMeter">Cena za 1 mb studni (zł):</label>
+        <select id="pricePerMeter" onchange="toggleCustomPriceField()">
+            <option value="150">150 zł/mb</option>
+            <option value="200">200 zł/mb</option>
+            <option value="250">250 zł/mb</option>
+            <option value="300">300 zł/mb</option>
+            <option value="custom">Własna wartość</option>
+        </select>
+
+        <div id="customPriceField" style="display: none;">
+            <label for="customPrice">Wpisz własną cenę za 1 mb (zł):</label>
+            <input type="number" id="customPrice" placeholder="Wpisz własną cenę" step="0.01">
+        </div>
+
+        <label for="waterCost">
+            Roczny koszt wody (zł): 
+            <a href="https://wytwornia-zieleni.pl/kalkulatory-ogrodowe/kalkulator-wody-do-ogrodu" target="_blank" style="color: #0f4e55; text-decoration: none; font-weight: bold;">Jak policzyć koszt wody?</a>
+        </label>
+        <input type="number" id="waterCost" placeholder="Wpisz roczny koszt wody" required>
+
+        <button type="button" onclick="calculateWellCost()">Oblicz</button>
+    </form>
+
+    <div id="results" class="results" style="display: none;">
+    <h4>Wyniki:</h4>
+    <p>Głębokość studni: <span id="resultWellDepth"></span> m</p>
+    <p>Koszt budowy studni: <span id="wellCost"></span> zł</p>
+    <p>Przewidywany czas zwrotu: <span id="paybackTime"></span> lat</p>
+
+    <h4>Wskazówka/Wniosek:</h4>
+    <p id="conclusion"></p>
+
+    <p><a href="https://wytwornia-zieleni.pl/formularz-wyceny/polski" target="_blank" style="color: #007bff; text-decoration: none; font-weight: bold;">👉 Sprawdź cenę projektu w Wytwórni Zieleni</a></p>
+</div>
+
+<script>
+    function calculateWellCost() {
+        const wellDepth = parseFloat(document.getElementById('wellDepth').value);
+        const additionalEquipment = parseFloat(document.getElementById('additionalEquipment').value);
+        const pricePerMeter = document.getElementById('pricePerMeter').value === "custom" 
+            ? parseFloat(document.getElementById('customPrice').value) 
+            : parseFloat(document.getElementById('pricePerMeter').value);
+        const waterCost = parseFloat(document.getElementById('waterCost').value);
+
+        if (isNaN(wellDepth) || wellDepth <= 0 || isNaN(pricePerMeter) || pricePerMeter <= 0 || isNaN(waterCost) || waterCost <= 0) {
+            alert("Proszę podać poprawne dane.");
+            return;
+        }
+
+        // Obliczanie kosztu budowy studni
+        const wellCost = (pricePerMeter * wellDepth) + additionalEquipment;
+
+        // Obliczanie czasu zwrotu inwestycji
+        const paybackTime = wellCost / waterCost;
+
+        // Aktualizowanie wyników
+        document.getElementById('resultWellDepth').textContent = wellDepth.toFixed(2);
+        document.getElementById('wellCost').textContent = wellCost.toFixed(2);
+        document.getElementById('paybackTime').textContent = paybackTime.toFixed(1);
+
+        // Dodanie wskazówki na podstawie czasu zwrotu
+        const conclusionElement = document.getElementById('conclusion');
+        if (paybackTime <= 3) {
+            conclusionElement.textContent = "Zwrot w 2-3 lat bardzo dobry wynik warto niezwłocznie zrobić studnię! (zwrot na poziomie 33-50% w skali roku🤑)";
+        } else if (paybackTime <= 6) {
+            conclusionElement.textContent = "Studnia się spłaci w 4-6 lat, to szybki zwrot na poziomie 16-25% w skali roku! (mało która inwestycja daje takie zwroty🤩)";
+        } else if (paybackTime <= 10) {
+            conclusionElement.textContent = "Studnia się spłaci w 7-10 lat, to zwrot na poziomie 10-15% w skali roku (więcej niż płacą obligacje👌)";
+        } else {
+            conclusionElement.textContent = "Studnia zwróci się w ponad 15 lat. Okres zwrotu jest długi, przemyśl budowę studni (na pewno woda nie będzie tanieć😲)";
+        }
+
+        // Wyświetlanie wyników
+        document.getElementById('results').style.display = 'block';
+    }
+</script>
